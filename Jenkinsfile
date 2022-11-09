@@ -22,7 +22,7 @@ pipeline {
 
         stage ('Deploy Kubernetes') {
             steps {
-                withKubeConfig(['kubeconfig']) {
+                withKubeConfig('kubeconfig') {
                     sh 'kubectl apply -f ./k8s/deployment.yaml -n mip-dev'
                 }
             }
