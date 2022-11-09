@@ -9,11 +9,13 @@ pipeline {
                 }
             }
         }
-        
+
         stage ('Push Image') {
-            script {
-                docker.withRegistry('https://registry.hub.docker.com', 'dockerhub')
-                dockerapp.Push('latest')
+            steps {
+                script {
+                    docker.withRegistry('https://registry.hub.docker.com', 'dockerhub')
+                    dockerapp.Push('latest')
+                }
             }
         }
     }
