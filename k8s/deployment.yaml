@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ibm-mq
+  labels:
+    app: ibm-mq
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ibm-mq
+  template:
+    metadata:
+      labels:
+        app: ibm-mq
+    spec:
+      containers:
+      - name: ibm-mq
+        image: ibmcom/mq:9.2.0.0-r2
+        env:
+        - name: "LICENSE"
+          value: "accept"
+        - name: "MQ_QMGR_NAME"
+          value: "QM1"
+        ports:
+        - containerPort: 1414
+        - containerPort: 9443
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ibm-mq
+spec:
+  type: NodePort
+  ports:
+  - port: 1414
+    targetPort: 1414
+    name: "communication-port"
+  - port: 9443
+    targetPort: 9443
+    name: "web-console-port"
+  selector:
+    app: ibm-mq
