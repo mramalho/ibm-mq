@@ -16,9 +16,18 @@ pipeline {
                     docker.withRegistry('https://registry.hub.docker.com', 'dockerhub'){
                     }
                 }
-
-                
+               
             }
         }
+
+        stage ('Deploy Kubernetes') {
+            steps {
+                withKubeConfig([credentialId: 'kubeconfig'])
+                   sh 'kubectl apply -f '
+                }
+               
+            }
+        }
+
     }
 }
