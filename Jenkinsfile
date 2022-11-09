@@ -5,7 +5,7 @@ pipeline {
         stage ('Build Image') {
             steps {
                 script {
-                    dockerapp = docker.build("ibmcom/mq:9.2.0.0-r2", '-f ./Dockerfile --no-cache .')
+                    dockerapp = docker.build("mrsystem/ibm-mq:9.2.0.0-r2", '-f ./Dockerfile --no-cache .')
                 }
             }
         }
@@ -13,7 +13,7 @@ pipeline {
         stage ('Push Image') {
             steps {
                 script {
-                    docker.withRegistry('https://registry.hub.docker.com', 'dockerhub'){
+                    docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
                     }
                 }
                
@@ -22,7 +22,7 @@ pipeline {
 
         stage ('Deploy Kubernetes') {
             steps {
-                withKubeConfig([credentialId: 'kubeconfig'])
+                withKubeConfig([credentialId: 'kubeconfig']) {
                    sh 'kubectl apply -f '
                 }
                
