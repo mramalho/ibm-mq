@@ -1,2 +1,2 @@
 FROM ibmcom/mq
-COPY  queue/*.mqsc /etc/mqm/
+COPY  ../queue/*.mqsc /etc/mqm/
