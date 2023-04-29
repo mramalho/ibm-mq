@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ibm-mq
+  labels:
+    app: ibm-mq
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ibm-mq
+  template:
+    metadata:
+      labels:
+        app: ibm-mq
+    spec:
+      containers:
+      - name: ibm-mq
+        image: ibmcom/mq:9.2.0.0-r3
+        env:
+        - name: "LICENSE"
+          value: "accept"
+        - name: "MQ_QMGR_NAME"
+          value: "QM1"
+        ports:
+        - containerPort: 1414
+        - containerPort: 9443
+        resources: {}
+        volumeMounts:
+        - name: queue-volume
+          mountPath: /etc/mqm/queue.mqsc
+          subPath: queue.mqsc
+        - name: topic-volume
+          mountPath: /etc/mqm/topic.mqsc
+          subPath: queue.mqsc
+        - name: sub-volume
+          mountPath: /etc/mqm/sub.mqsc
+          subPath: sub.mqsc
+      volumes:
+      - name: queue-volume
+        configMap:
+          name: mqsc-queue
+      - name: topic-volume
+        configMap:
+          name: mqsc-queue
+      - name: sub-volume
+        configMap:
+          name: mqsc-queue
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ibm-mq
+spec:
+  type: NodePort
+  ports:
+  - port: 1414
+    protocol: TCP
+    targetPort: 1414
+    name: "communication-port"
+  - port: 9443
+    protocol: TCP
+    targetPort: 9443
+    name: "web-console-port"
+  selector:
+    app: ibm-mq
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mqsc-queue
+data:
+  queue.mqsc: |
+    DEFINE QLOCAL('DEV.DEAD.LETTER.QUEUE') DISTL(NO) MAXDEPTH(5000) REPLACE
+    DEFINE QLOCAL('DEV.QUEUE.1') DISTL(NO) MAXDEPTH(5000) REPLACE
+    DEFINE QLOCAL('DEV.QUEUE.2') DISTL(NO) MAXDEPTH(5000) REPLACE
+    DEFINE QLOCAL('DEV.QUEUE.3') DISTL(NO) MAXDEPTH(5000) REPLACE
+  topic.mqsc: |
+    DEFINE TOPIC('DEV.BASE.TOPIC') TOPICSTR('dev/') REPLACE
+  sub.mqsc: |
+    DEFINE SUB('DEV.QUEUE.1') TOPICSTR('') TOPICOBJ('DEV.QUEUE.TOPIC') DEST('DEV.QUEUE.KEY.UPDATES.TOPIC') PUBACCT(0431303031000000000000000000000000000000000000000000000000000006) DESTCORL(414D5120514D3120202020202020202048A69A6287E0D920) SUBUSER('mqm') REPLACE
+    DEFINE SUB('DEV.QUEUE.2') TOPICSTR('') TOPICOBJ('DEV.QUEUE.TOPIC') DEST('DEV.QUEUE.KEY.UPDATES.TOPIC') PUBACCT(0431303031000000000000000000000000000000000000000000000000000022) DESTCORL(414D5120514D3120202020202020202048A69A62A5E9D920) SUBUSER('mqm') REPLACE
+    DEFINE SUB('DEV.QUEUE.3') TOPICSTR('') TOPICOBJ('DEV.QUEUE.TOPIC') DEST('DEV.QUEUE.HOOK.UPDATES.TOPIC') PUBACCT(0431303031000000000000000000000000000000000000000000000000007431) DESTCORL(414D5120514D3120202020202020202048A69A62A5E9D920) SUBUSER('mqm') REPLACE
+    
